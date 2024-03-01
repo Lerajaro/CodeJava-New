@@ -6,11 +6,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Arrays;
 
 public class EquivalenceClassesAnalyzer2 {
     // Declare ageDetailLevel as a class-level variable
-    private static String ageDetailLevel;
+    private static Map<String, String> chosenDetailLevels = new HashMap<>();
     private static String[] inputHeaders;
 
     public static void main(String[] args) {
@@ -31,27 +30,25 @@ public class EquivalenceClassesAnalyzer2 {
         }
     }
 
-    private static String[] getDetailedAgeValues() {
-        String ageCsvFilePath = "riskcalculator/hierarchies/age.csv";
-        String[] ageHeaders;
+    private static String[] getDetailedQIValues(String QI) {
+        // Implement similar logic as getDetailedAgeValues() for Inzidenzort
+        String qiCsvFilePath = ("riskcalculator/hierarchies/" + QI.toLowerCase() +".csv");
+        String[] qiHeaders;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(ageCsvFilePath))) {
-            // Read the header line to get detailed age values
-            String ageHeadersLine = br.readLine();
-            ageHeaders = ageHeadersLine.split(";");
+        try (BufferedReader br = new BufferedReader(new FileReader(qiCsvFilePath))) {
+            String qiHeadersLine = br.readLine();
+            qiHeaders = qiHeadersLine.split(";");
 
-            // Display detailed age values to the user
-            System.out.println("Choose a detailed Age value:");
-            for (int i = 0; i < ageHeaders.length; i++) {
-                System.out.println((i + 1) + ". " + ageHeaders[i]);
+            // Display detailed qi values to the user
+            System.out.println("Choose a detailed " + QI + " value:");
+            for (int i = 0; i < qiHeaders.length; i++) {
+                System.out.println((i + 1) + ". " + qiHeaders[i]);
             }
-
         } catch (IOException e) {
             e.printStackTrace();
-            ageHeaders = new String[0]; // In case of an error, set empty array
+            qiHeaders = new String[0]; // In case of an error, set empty array
         }
-
-        return ageHeaders;
+        return qiHeaders;
     }
 
     private static int getUserChoice(String[] options) {
@@ -75,14 +72,14 @@ public class EquivalenceClassesAnalyzer2 {
         return choice;
     }
 
-    private static String getAgeDetailLevel() {
-        String[] ageHeaders = getDetailedAgeValues();
-        if (ageHeaders.length == 0) {
+    private static String getQIDetailLevel(String QI) {
+        String[] qiHeaders = getDetailedQIValues(QI);
+        if (qiHeaders.length == 0) {
             return null; // Return null in case of an error
         }
 
-        int choice = getUserChoice(ageHeaders);
-        return ageHeaders[choice]; // returns a String, like "5-Jahr"
+        int choice = getUserChoice(qiHeaders);
+        return qiHeaders[choice]; // returns a String, like "5-Jahr"
     }
 
     // Modify the createEquivalenceClasses method
@@ -97,28 +94,19 @@ public class EquivalenceClassesAnalyzer2 {
             // Get user input for QIs to consider
             int[] selectedQIIndices = getUserInput(inputHeaders);
 
+            for (int selectedQI : selectedQIIndices) {
+                String QI = inputHeaders[selectedQI];
+                String detailLevel = getQIDetailLevel(QI);
+                if (detailLevel != null) {
+                    chosenDetailLevels.put(QI, detailLevel);
+                }
+            }
+
             if (selectedQIIndices.length == 0) {
                 System.out.println("No valid Quasi-Identifying Variables selected. Exiting.");
                 return equivalenceClasses;
             }
             
-            // Inside the main logic where Age is processed
-            for (int selectedQI : selectedQIIndices) {
-                if ("Age".equalsIgnoreCase(inputHeaders[selectedQI])) {
-                    ageDetailLevel = getAgeDetailLevel();
-                    if (ageDetailLevel != null) {
-                        // Map the selected detail level to hierarchy values
-                        //String mappedValue = mapToHierarchyValue(selectedQI, ageDetailLevel);
-                        
-                        // Use the mapped value in further processing
-                        System.out.println("Chosen Age Detail Level: " + ageDetailLevel);
-                        //System.out.println("Mapped Age Value: " + mappedValue);
-                        
-                        // Modify the code accordingly for your calculations
-                    }
-                }
-            }
-
             // Find indices of selected quasi-identifying variables
             for (int index : selectedQIIndices) {
                 // Check if the index is -1 (not found), and skip iteration
@@ -135,11 +123,13 @@ public class EquivalenceClassesAnalyzer2 {
                 // Construct the key for each selected quasi-identifying variable
                 StringBuilder keyBuilder = new StringBuilder();
                 for (int index : selectedQIIndices) {
-                    
+                    String QI = inputHeaders[index];
+                    String detailLevel = chosenDetailLevels.get(QI);
+
                     // If the current QI is "Age," append both the QI value and the detailed level
-                    if ("Age".equalsIgnoreCase(inputHeaders[index])) {
-                        String hierarchyValue = mapToHierarchyValue(line, index, ageDetailLevel);
-                        System.out.println("Mapped Age Value: " + hierarchyValue);
+                    if (detailLevel != null) {
+                        String hierarchyValue = mapToHierarchyValue(line, index, detailLevel);
+                        System.out.println("Mapped " + QI + " Value: " + hierarchyValue);
                         keyBuilder.append(hierarchyValue).append("_");
                     } else {
                         keyBuilder.append(columns[index]).append("_");
@@ -216,8 +206,9 @@ public class EquivalenceClassesAnalyzer2 {
 
     private static String mapToHierarchyValue(String inputLine, int selectedQI, String selectedDetailLevel) {
         try (BufferedReader br = new BufferedReader(new FileReader("riskcalculator/hierarchies/" + inputHeaders[selectedQI].toLowerCase() + ".csv"))) {
-            System.out.println("Now Input-LINE: " + inputLine);
             String valueToBeUpdated = inputLine.split(",")[selectedQI];
+            System.out.println("Input Value: " + valueToBeUpdated);
+
             // Read the header line to get column names
             String[] headers = br.readLine().split(";");
             
@@ -230,10 +221,7 @@ public class EquivalenceClassesAnalyzer2 {
                     break;
                 }
             }
-    
-            System.out.println("Selected Detail Level: " + selectedDetailLevel);
-            System.out.println("Detail Level Index: " + detailLevelIndex);
-    
+        
             // Read the corresponding row for the selected detail level
             String line;
             while ((line = br.readLine()) != null) {
@@ -241,6 +229,9 @@ public class EquivalenceClassesAnalyzer2 {
                 if (values[0].equals(valueToBeUpdated)) {
                     if (detailLevelIndex >= 0 && detailLevelIndex < values.length) {
                         return values[detailLevelIndex];
+                    }  else {
+                        // Handle the case when detail level is not found (return a default value)
+                        return "DEFAULT_VALUE"; // Change this to an appropriate default value
                     }
                 }
             }
