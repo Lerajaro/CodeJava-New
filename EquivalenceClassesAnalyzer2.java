@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Arrays;
 
 public class EquivalenceClassesAnalyzer2 {
     // Declare ageDetailLevel as a class-level variable
@@ -87,6 +88,8 @@ public class EquivalenceClassesAnalyzer2 {
     private static Map<String, Integer> createEquivalenceClasses(String csvFilePath) throws IOException {
         Map<String, Integer> equivalenceClasses = new HashMap<>();
 
+        String[] redactionQIs = {"diagnose_icd10_code", "inzidenzort"};
+
         try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
             // Read the header line to get column indices
             inputHeaders = br.readLine().split(",");
@@ -117,6 +120,7 @@ public class EquivalenceClassesAnalyzer2 {
             }
 
             String line;
+            // Now iterating over all lines of the input csv
             while ((line = br.readLine()) != null) {
                 // Split the line into columns
                 String[] columns = line.split(",");
@@ -124,12 +128,20 @@ public class EquivalenceClassesAnalyzer2 {
                 StringBuilder keyBuilder = new StringBuilder();
                 for (int index : selectedQIIndices) {
                     String QI = inputHeaders[index];
+                    System.out.println("QI: " + QI);
                     String detailLevel = chosenDetailLevels.get(QI);
-
+                    String hierarchyValue;
+                    String hierarchyBuilder;
                     // If the current QI is "Age," append both the QI value and the detailed level
                     if (detailLevel != null) {
-                        String hierarchyValue = mapToHierarchyValue(line, index, detailLevel);
-                        System.out.println("Mapped " + QI + " Value: " + hierarchyValue);
+                        if(Arrays.asList(redactionQIs).contains(QI.toLowerCase())) {
+                            hierarchyBuilder = "Redaction Based";
+                            hierarchyValue =mapToRedactionHierarchyValue(line, index, detailLevel);
+                        } else {
+                            hierarchyBuilder = "Regular CSV Based";
+                            hierarchyValue = mapToHierarchyValue(line, index, detailLevel);
+                        }
+                        System.out.println("Hierarchy: " + hierarchyBuilder);
                         keyBuilder.append(hierarchyValue).append("_");
                     } else {
                         keyBuilder.append(columns[index]).append("_");
@@ -241,7 +253,31 @@ public class EquivalenceClassesAnalyzer2 {
         return null;
     }
     
+    private static String mapToRedactionHierarchyValue(String inputLine, int selectedVariable, String selectedDetailLevel) {
+        try (BufferedReader br = new BufferedReader(new FileReader("riskcalculator/hierarchies/" + inputHeaders[selectedVariable].toLowerCase() + ".csv"))) {
+            //System.out.println("Now Input-LINE: " + inputLine);
+            String valueToBeUpdated = inputLine.split(",")[selectedVariable];
+
+            // Read the header line to get column names
+            String[] headers = br.readLine().split(";");
+            int lineLength = headers.length;
+            // Find the index of the selected detail level in the hierarchy file
+            int detailLevelIndex = Arrays.asList(headers).indexOf(selectedDetailLevel);
     
+            //System.out.println("Selected Detail Level: " + selectedDetailLevel);
+            // System.out.println("Detail Level Index: " + detailLevelIndex);
+
+            // Read the corresponding row for the selected detail level
+            String redactedValue = valueToBeUpdated.substring(0, lineLength-detailLevelIndex-1) + "*".repeat(detailLevelIndex);
+            System.out.println("Input Value: " + valueToBeUpdated);
+            System.out.println("Output Value: " + redactedValue);
+            return redactedValue;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
     // Modify the displayEquivalenceClassSizes method
