@@ -3,10 +3,15 @@ package riskcalculator;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.text.ParseException;
+
 
 public class EquivalenceClassesAnalyzer2 {
     // Declare ageDetailLevel as a class-level variable
@@ -89,6 +94,7 @@ public class EquivalenceClassesAnalyzer2 {
         Map<String, Integer> equivalenceClasses = new HashMap<>();
 
         String[] redactionQIs = {"diagnose_icd10_code", "inzidenzort"};
+        String[] dateQIs = {"diagnosedatum", "geburtsdatum"};
 
         try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
             // Read the header line to get column indices
@@ -137,6 +143,9 @@ public class EquivalenceClassesAnalyzer2 {
                         if(Arrays.asList(redactionQIs).contains(QI.toLowerCase())) {
                             hierarchyBuilder = "Redaction Based";
                             hierarchyValue =mapToRedactionHierarchyValue(line, index, detailLevel);
+                        } else if (Arrays.asList(dateQIs).contains(QI.toLowerCase())) {
+                            hierarchyBuilder = "Date Based";
+                            hierarchyValue = mapToDateHierarchyValue(line, index, detailLevel);
                         } else {
                             hierarchyBuilder = "Regular CSV Based";
                             hierarchyValue = mapToHierarchyValue(line, index, detailLevel);
@@ -278,6 +287,57 @@ public class EquivalenceClassesAnalyzer2 {
         }
         return null;
     }
+
+    private static String mapToDateHierarchyValue(String inputLine, int selectedVariable, String selectedDetailLevel) {
+        try (BufferedReader br = new BufferedReader(new FileReader("riskcalculator/hierarchies/" + inputHeaders[selectedVariable].toLowerCase() + ".csv"))) {
+            String valueToBeUpdated = inputLine.split(",")[selectedVariable];
+            System.out.println("Input Value: " + valueToBeUpdated);
+
+            // Read the first line after the header to get detail levels
+            String[] detailLevels = br.readLine().split(";");
+            int detailLevelIndex = Arrays.asList(detailLevels).indexOf(selectedDetailLevel);
+
+            // Read the corresponding row for the selected detail level
+            String line;
+            int rowCount = 0;
+            while ((line = br.readLine()) != null) {
+                rowCount++;
+                if (rowCount == 1) {
+                    String[] hierarchyLine = line.split(";");
+                    String format = hierarchyLine[detailLevelIndex];
+              
+                    // Parse the date and apply the format based on the chosen detail level
+                    SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
+                    SimpleDateFormat outputDateFormat = new SimpleDateFormat(format);
+                    String suffix = "";
+                    try {
+                        Date date = inputDateFormat.parse(valueToBeUpdated);
+                        // Adjust the format for Jahrzehnt to replace the last digit with "0s"
+                        if (selectedDetailLevel.equals("Jahrzehnt")) {
+                            Calendar calendar = Calendar.getInstance();
+                            calendar.setTime(date);
+                            int year = calendar.get(Calendar.YEAR);
+                            year = (year / 10) * 10;  // Replace the last digit with "0"
+                            calendar.set(Calendar.YEAR, year);
+                            date = calendar.getTime();
+                            suffix = "s";
+                        }
+
+                        String updatedValue = outputDateFormat.format(date) + suffix;
+                        System.out.println("Updated Value: " + updatedValue);
+                        return updatedValue;
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
 
 
     // Modify the displayEquivalenceClassSizes method
