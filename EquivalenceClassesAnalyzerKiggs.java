@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.text.ParseException;
+import java.util.ArrayList;
 
 
 public class EquivalenceClassesAnalyzerKiggs {
@@ -102,17 +103,10 @@ public class EquivalenceClassesAnalyzerKiggs {
             inputHeaders = br.readLine().split(",");
 
             // Get user input for QIs to consider
-            int[] selectedQIIndices = getUserInput(qiStandardKiggsOptions, inputHeaders);
+            ArrayList<Integer> selectedQIIndices = getUserInput(qiStandardKiggsOptions, inputHeaders);
 
-            // for (int selectedQI : selectedQIIndices) {
-            //     String QI = inputHeaders[selectedQI];
-            //     String detailLevel = getQIDetailLevel(QI);
-            //     if (detailLevel != null) {
-            //         chosenDetailLevels.put(QI, detailLevel);
-            //     }
-            // }
 
-            if (selectedQIIndices.length == 0) {
+            if (selectedQIIndices.isEmpty()) {
                 System.out.println("No valid Quasi-Identifying Variables selected. Exiting.");
                 return equivalenceClasses;
             }
@@ -135,15 +129,15 @@ public class EquivalenceClassesAnalyzerKiggs {
                 // Construct the key for each selected quasi-identifying variable
                 StringBuilder keyBuilder = new StringBuilder();
                 for (int index : selectedQIIndices) {
-                    System.out.println("QI-Index: " + index);
+                    // System.out.println("QI-Index: " + index);
                     String QI = inputHeaders[index];
-                    System.out.println("QI: " + QI);
+                    // System.out.println("QI: " + QI);
                     keyBuilder.append(columns[index]).append("_");
                 }
                 String key = keyBuilder.toString();
             
                 // Debug print to check the constructed keys
-                System.out.println("Constructed Key: " + key);
+                // System.out.println("Constructed Key: " + key);
             
                 // Update the count in the equivalence class
                 equivalenceClasses.put(key, equivalenceClasses.getOrDefault(key, 0) + 1);
@@ -157,7 +151,7 @@ public class EquivalenceClassesAnalyzerKiggs {
 
     // Modify the getUserInput method
 
-    private static int[] getUserInput(String[] availableQIs, String[] fullSetVariables) {
+    private static ArrayList<Integer> getUserInput(String[] availableQIs, String[] fullSetVariables) {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Available Quasi-Identifying Variables:");
@@ -174,24 +168,29 @@ public class EquivalenceClassesAnalyzerKiggs {
 
         // Split user input into selected QIs
         String[] selectedIndices = userInput.split(",");
-        int[] selectedQIs = new int[selectedIndices.length];
+        ArrayList<Integer> selectedQIsList = new ArrayList<>();
 
-        for (int i = 0; i < selectedIndices.length; i++) {
+        for (String input : selectedIndices) {
+            System.out.println("Now input = " + input);
+            int idx = Integer.parseInt(input);
             try {
-                String qiString = availableQIs[i];
-                for(int index = 0; index < fullSetVariables.length; index++){
-                    if(fullSetVariables[index].equals(qiString)) {
-                        selectedQIs[i] = index;
-                    }; // Adjust to 0-based index
-
+                String qiString = availableQIs[idx-1].toLowerCase(); // Convert to lowercase
+                System.out.println("Selected QI: " + qiString);
+                for (int index = 0; index < fullSetVariables.length; index++) {
+                    if (fullSetVariables[index].toLowerCase().equals(qiString)) {
+                        System.out.println("Index of selected Qi: " + index);
+                        selectedQIsList.add(index); // Adjust to 0-based index
+                        break; // Stop searching once a match is found
+                    }
                 }
             } catch (NumberFormatException e) {
                 e.printStackTrace();
-                return new int[0]; // Return an empty array in case of an error
+                return new ArrayList<>(); // Return an empty array in case of an error
             }
         }
-
-        return selectedQIs;
+        
+        System.out.println("Selected QI Indices: " + selectedQIsList);
+        return selectedQIsList;
     }
 
     // Add a new method to validate user input
