@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 public class EquivalenceClassesAnalyzerKiggs {
     // Declare ageDetailLevel as a class-level variable
-    private static Map<String, String> chosenDetailLevels = new HashMap<>();
+    // private static Map<String, String> chosenDetailLevels = new HashMap<>();
     private static String[] inputHeaders;
 
     public static void main(String[] args) {
@@ -93,7 +93,7 @@ public class EquivalenceClassesAnalyzerKiggs {
 
     private static Map<String, Integer> createEquivalenceClasses(String csvFilePath) throws IOException {
         Map<String, Integer> equivalenceClasses = new HashMap<>();
-        String[] qiStandardKiggsOptions = {"sex","sexa","age2","agegrpK","PAEagem_k","PAEagev_k","MIland","untj","untm","wo1","wo2","wob","mbtyp"};
+        String[] qiStandardKiggsOptions = {"sex","sexa","age2","agegrpK","untj","untm","wo1","wo2","wob","mbtyp","PAEagem_k","PAEagev_k","MIland"};
         // String[] redactionQIs = {"diagnose_icd10_code", "inzidenzort"};
         // String[] dateQIs = {"diagnosedatum", "geburtsdatum"};
 
