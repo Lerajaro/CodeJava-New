@@ -21,7 +21,7 @@ public class EquivalenceClassesAnalyzerKiggs {
 
     public static void main(String[] args) {
         // Specify the path to your CSV file
-        String csvFilePath = "riskcalculator/test-data/kiggs_GDC_rowcount_3500.csv";
+        String csvFilePath = "riskcalculator/test-data/kiggs.csv";
 
         try {
             // Read CSV file and create equivalence classes based on user input
@@ -149,6 +149,19 @@ public class EquivalenceClassesAnalyzerKiggs {
         return equivalenceClasses;
     }
 
+    private static Map<String, Integer> getUniqueEquivalenceClasses(Map<String, Integer> equivalenceClasses) {
+        Map<String, Integer> uniqueClasses = new HashMap<>();
+    
+        for (Map.Entry<String, Integer> entry : equivalenceClasses.entrySet()) {
+        //    System.out.println("Entry: " +  entry);
+            if (entry.getValue() == 1) {
+            //    System.out.println("Unique entry: " + entry);
+                uniqueClasses.put(entry.getKey(), entry.getValue());
+            }
+        }
+    
+        return uniqueClasses;
+    }
     // Modify the getUserInput method
 
     private static ArrayList<Integer> getUserInput(String[] availableQIs, String[] fullSetVariables) {
@@ -359,6 +372,18 @@ public class EquivalenceClassesAnalyzerKiggs {
         }
 
         double averageSize = (double) totalSizes / totalClasses;
+
+        // Assuming equivalenceClasses is the map you want to filter
+        Map<String, Integer> uniqueClasses = getUniqueEquivalenceClasses(equivalenceClasses);
+
+        // Now you can iterate through uniqueClasses and process the cases
+        for (Map.Entry<String, Integer> entry : uniqueClasses.entrySet()) {
+            String uniqueKey = entry.getKey();
+            int classSize = entry.getValue();
+            // Process the unique case as needed
+            System.out.println("Unique Key: " + uniqueKey + ", Class Size: " + classSize);
+        }
+
 
         System.out.println("Number of Different Classes: " + totalClasses);
         System.out.println("Minimum Class Size: " + minSize + " (Count: " + minSizeCount + ")");
