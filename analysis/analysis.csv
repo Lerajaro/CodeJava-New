@@ -1,0 +1,8 @@
+Total Rows,Filtered Rows,Remaining Rows,Number of Classes,Minimum Class Size,Maximum Class Size,Average Class Size,QI's
+
+17640,0,17640,4350,1,51,4.055172413793104,[sex, age2, paeagem_k, paeagev_k, miland, untj, wob]
+17640,9146,8494,478,10,51,17.769874476987447,[sex, age2, paeagem_k, paeagev_k, miland, untj, wob]
+17640,0,17640,10629,1,13,1.6596104995766299,[sex, age2, paeagem_k, paeagev_k, miland, untj, untm, wob]
+17640,17545,95,9,10,13,10.555555555555555,[sex, age2, paeagem_k, paeagev_k, miland, untj, untm, wob]
+17640,0,17640,1932,1,142,9.130434782608695,[sex, age2, paeagem_k, paeagev_k, miland, wob]
+17640,4138,13502,419,10,142,32.224343675417664,[sex, age2, paeagem_k, paeagev_k, miland, wob]

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import java.util.ArrayList;
 
@@ -198,7 +200,22 @@ public class EquivalenceClassesAnalyzerKiggs {
         return true;
     }
 
-  
+    private static void generateStatisticsCSV(int numOfClasses, int minSize, int maxSize, double averageSize) {
+        String csvFileName = "riskcalculator/analysis/analysis.csv";
+
+        try (FileWriter writer = new FileWriter(csvFileName, true)) {
+            // Write CSV header
+            // writer.append("Total Rows,Filtered Rows,Remaining Rows,QI's,Number of Classes,Minimum Class Size,Maximum Class Size,Average Class Size\n");
+
+            // Write statistics
+            writer.append(totalRows + "," + rowsFilteredOut + "," + (totalRows - rowsFilteredOut) + "," +
+                    numOfClasses + "," + minSize + "," + maxSize + "," + averageSize + "," + userQIChoice + "\n");
+
+            System.out.println("Statistics CSV created: " + csvFileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     // Modify the displayEquivalenceClassSizes method
 
     private static void displayEquivalenceClassSizes(Map<String, Integer> equivalenceClasses) {
@@ -250,6 +267,8 @@ public class EquivalenceClassesAnalyzerKiggs {
         System.out.println("Minimum Class Size: " + minSize + " (Count: " + minSizeCount + ")");
         System.out.println("Maximum Class Size: " + maxSize + " (Count: " + maxSizeCount + ")");
         System.out.println("Average Class Size: " + averageSize);
+
+        generateStatisticsCSV(totalClasses, minSize, maxSize, averageSize);
     }
 
     public static void TestStringArrays(String[] variables, String clarifyer) {
