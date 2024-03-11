@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equivalence Classes Analyzer</title>
+</head>
+<body>
+    <h1>Equivalence Classes Analyzer</h1>
+
+    <label for="csvFileInput">Choose a CSV file:</label>
+    <input type="file" id="csvFileInput" accept=".csv"><br>
+
+    <button onclick="analyzeFile()">Analyze File</button>
+
+<!-- Add this script section inside the <head> or at the end of the <body> in your HTML file -->
+    <script>
+        // Define a function to emulate getUserInput
+        function getUserInput(availableQIs) {
+            // Convert the array to a string for display in the prompt
+            const displayString = availableQIs.map((qi, index) => `${index + 1}. ${qi}`).join('\n');
+    
+            // Prompt the user for input
+            const userInput = window.prompt(`Available Quasi-Identifying Variables:\n${displayString}\nEnter the numbers of the QIs you want to consider (comma-separated):`);
+    
+            // Split user input into selected QIs
+            const selectedIndices = userInput ? userInput.split(',').map(index => parseInt(index.trim(), 10)) : [];
+    
+            // Convert the 1-based indices to 0-based indices
+            return selectedIndices.map(index => index - 1);
+        }
+    
+        // Modify the analyzeFile function to use getUserInput
+        function analyzeFile() {
+            const fileInput = document.getElementById('csvFileInput');
+            const selectedFile = fileInput.files[0];
+    
+            if (!selectedFile) {
+                alert("Please choose a CSV file.");
+                return;
+            }
+    
+            // Sample list of available quasi-identifying variables
+            const availableQIs = ["sex", "sexa", "age2", "agegrpK", "PAEagem_k", "PAEagev_k", "MIland", "untj", "untm", "wo1", "wo2", "wob", "mbtyp"];
+    
+            // Use the getUserInput function to get user input
+            const selectedQIIndices = getUserInput(availableQIs);
+    
+            if (selectedQIIndices.length === 0) {
+                alert("No valid Quasi-Identifying Variables selected. Exiting.");
+                return;
+            }
+    
+            // Display the selected quasi-identifying variables (for demonstration purposes)
+            const selectedQIs = selectedQIIndices.map(index => availableQIs[index]);
+            alert(`Selected Quasi-Identifying Variables: ${selectedQIs.join(', ')}`);
+    
+            // Continue with the file processing or send selectedQIIndices to the backend
+            // ...
+    
+            // You can use fetch or other methods to send selectedQIIndices to the backend
+        }
+    </script>
+    
+</body>
+</html>
