@@ -12,12 +12,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.text.ParseException;
 
-
-public class EquivalenceClassesAnalyzer2 {
+public class EquivalenceClassesAnalyzerZfKD {
     // Declare ageDetailLevel as a class-level variable
     private static Map<String, String> chosenDetailLevels = new HashMap<>();
-    private static String[] inputHeaders;
-
+    private static String[] inputHeaders = {"Geschlecht","Age","Inzidenzort","Geburtsdatum","Diagnosedatum","Diagnose_ICD10_Code"};
+    private static Boolean printOutKeys = true;
+    private static int totalRows = 0;
     public static void main(String[] args) {
         // Specify the path to your CSV file
         String csvFilePath = "riskcalculator/test-data/100_rows.csv";
@@ -39,11 +39,12 @@ public class EquivalenceClassesAnalyzer2 {
     private static String[] getDetailedQIValues(String QI) {
         // Implement similar logic as getDetailedAgeValues() for Inzidenzort
         String qiCsvFilePath = ("riskcalculator/hierarchies/" + QI.toLowerCase() +".csv");
-        String[] qiHeaders;
+         String[] qiHeaders; 
 
         try (BufferedReader br = new BufferedReader(new FileReader(qiCsvFilePath))) {
             String qiHeadersLine = br.readLine();
             qiHeaders = qiHeadersLine.split(";");
+
 
             // Display detailed qi values to the user
             System.out.println("Choose a detailed " + QI + " value:");
@@ -98,7 +99,13 @@ public class EquivalenceClassesAnalyzer2 {
 
         try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
             // Read the header line to get column indices
-            inputHeaders = br.readLine().split(",");
+            //------UNCOMMENT TO GET THE FULL CSV HEADER AS OPTIONS---------
+            // inputHeaders = br.readLine().split(",");
+            //--------------------------------------------------------------
+            String line;
+
+            // Skip the header line
+            br.readLine(); // Read and discard the header line
 
             // Get user input for QIs to consider
             int[] selectedQIIndices = getUserInput(inputHeaders);
@@ -125,7 +132,7 @@ public class EquivalenceClassesAnalyzer2 {
                 }
             }
 
-            String line;
+            //String line;
             // Now iterating over all lines of the input csv
             while ((line = br.readLine()) != null) {
                 // Split the line into columns
@@ -134,7 +141,7 @@ public class EquivalenceClassesAnalyzer2 {
                 StringBuilder keyBuilder = new StringBuilder();
                 for (int index : selectedQIIndices) {
                     String QI = inputHeaders[index];
-                    System.out.println("QI: " + QI);
+                    // System.out.println("QI: " + QI);
                     String detailLevel = chosenDetailLevels.get(QI);
                     String hierarchyValue;
                     String hierarchyBuilder;
@@ -150,7 +157,7 @@ public class EquivalenceClassesAnalyzer2 {
                             hierarchyBuilder = "Regular CSV Based";
                             hierarchyValue = mapToHierarchyValue(line, index, detailLevel);
                         }
-                        System.out.println("Hierarchy: " + hierarchyBuilder);
+                        // System.out.println("Hierarchy: " + hierarchyBuilder);
                         keyBuilder.append(hierarchyValue).append("_");
                     } else {
                         keyBuilder.append(columns[index]).append("_");
@@ -159,12 +166,16 @@ public class EquivalenceClassesAnalyzer2 {
                 String key = keyBuilder.toString();
             
                 // Debug print to check the constructed keys
-                System.out.println("Constructed Key: " + key);
+                if(printOutKeys == true) {
+                    System.out.println("Constructed Key: " + key);
+                }
             
                 // Update the count in the equivalence class
                 equivalenceClasses.put(key, equivalenceClasses.getOrDefault(key, 0) + 1);
             }
-            
+            for (Map.Entry<String, Integer> entry : equivalenceClasses.entrySet()) {
+                totalRows += entry.getValue();
+            }
             
         }
 
@@ -228,7 +239,7 @@ public class EquivalenceClassesAnalyzer2 {
     private static String mapToHierarchyValue(String inputLine, int selectedQI, String selectedDetailLevel) {
         try (BufferedReader br = new BufferedReader(new FileReader("riskcalculator/hierarchies/" + inputHeaders[selectedQI].toLowerCase() + ".csv"))) {
             String valueToBeUpdated = inputLine.split(",")[selectedQI];
-            System.out.println("Input Value: " + valueToBeUpdated);
+            // System.out.println("Input Value: " + valueToBeUpdated);
 
             // Read the header line to get column names
             String[] headers = br.readLine().split(";");
@@ -278,8 +289,8 @@ public class EquivalenceClassesAnalyzer2 {
 
             // Read the corresponding row for the selected detail level
             String redactedValue = valueToBeUpdated.substring(0, lineLength-detailLevelIndex-1) + "*".repeat(detailLevelIndex);
-            System.out.println("Input Value: " + valueToBeUpdated);
-            System.out.println("Output Value: " + redactedValue);
+            //System.out.println("Input Value: " + valueToBeUpdated);
+            //System.out.println("Output Value: " + redactedValue);
             return redactedValue;
 
         } catch (IOException e) {
@@ -291,7 +302,7 @@ public class EquivalenceClassesAnalyzer2 {
     private static String mapToDateHierarchyValue(String inputLine, int selectedVariable, String selectedDetailLevel) {
         try (BufferedReader br = new BufferedReader(new FileReader("riskcalculator/hierarchies/" + inputHeaders[selectedVariable].toLowerCase() + ".csv"))) {
             String valueToBeUpdated = inputLine.split(",")[selectedVariable];
-            System.out.println("Input Value: " + valueToBeUpdated);
+            // System.out.println("Input Value: " + valueToBeUpdated);
 
             // Read the first line after the header to get detail levels
             String[] detailLevels = br.readLine().split(";");
@@ -342,6 +353,41 @@ public class EquivalenceClassesAnalyzer2 {
 
     // Modify the displayEquivalenceClassSizes method
 
+    // private static void displayEquivalenceClassSizes(Map<String, Integer> equivalenceClasses) {
+    //     int totalClasses = equivalenceClasses.size();
+    //     int totalSizes = 0;
+    //     int minSize = Integer.MAX_VALUE;
+    //     int maxSize = Integer.MIN_VALUE;
+    //     int minSizeCount = 0;
+    //     int maxSizeCount = 0;
+
+    //     for (Map.Entry<String, Integer> entry : equivalenceClasses.entrySet()) {
+    //         int size = entry.getValue();
+    //         totalSizes += size;
+
+    //         if (size < minSize) {
+    //             minSize = size;
+    //             minSizeCount = 1;
+    //         } else if (size == minSize) {
+    //             minSizeCount++;
+    //         }
+
+    //         if (size > maxSize) {
+    //             maxSize = size;
+    //             maxSizeCount = 1;
+    //         } else if (size == maxSize) {
+    //             maxSizeCount++;
+    //         }
+    //     }
+
+    //     double averageSize = (double) totalSizes / totalClasses;
+
+    //     System.out.println("Number of Different Classes: " + totalClasses);
+    //     System.out.println("Minimum Class Size: " + minSize + " (Count: " + minSizeCount + ")");
+    //     System.out.println("Maximum Class Size: " + maxSize + " (Count: " + maxSizeCount + ")");
+    //     System.out.println("Average Class Size: " + averageSize);
+    // }
+
     private static void displayEquivalenceClassSizes(Map<String, Integer> equivalenceClasses) {
         int totalClasses = equivalenceClasses.size();
         int totalSizes = 0;
@@ -371,10 +417,28 @@ public class EquivalenceClassesAnalyzer2 {
 
         double averageSize = (double) totalSizes / totalClasses;
 
+        // Assuming equivalenceClasses is the map you want to filter
+        // Map<String, Integer> uniqueClasses = getUniqueEquivalenceClasses(equivalenceClasses);
+
+        // // Now you can iterate through uniqueClasses and process the cases
+        // for (Map.Entry<String, Integer> entry : uniqueClasses.entrySet()) {
+        //     String uniqueKey = entry.getKey();
+        //     int classSize = entry.getValue();
+        //     // Process the unique case as needed
+        //     System.out.println("Unique Key: " + uniqueKey + ", Class Size: " + classSize);
+        // }
+
+        System.out.println("----- STATISTICS -----");
+        System.out.println("Total Rows: " + totalRows);
+        //System.out.println("Rows filtered Out: " + rowsFilteredOut);
+        //System.out.println("Rows Remaining: " + (totalRows - rowsFilteredOut));
+        //System.out.println("QIs: " + userQIChoice);
         System.out.println("Number of Different Classes: " + totalClasses);
         System.out.println("Minimum Class Size: " + minSize + " (Count: " + minSizeCount + ")");
         System.out.println("Maximum Class Size: " + maxSize + " (Count: " + maxSizeCount + ")");
         System.out.println("Average Class Size: " + averageSize);
+
+        //generateStatisticsCSV(totalClasses, minSize, maxSize, averageSize);
     }
 
     public static void TestStringArrays(String[] variables, String clarifyer) {
