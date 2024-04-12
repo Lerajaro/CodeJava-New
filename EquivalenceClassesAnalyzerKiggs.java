@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.io.FileWriter;
-import java.io.IOException;
 
 import java.util.ArrayList;
 
@@ -18,6 +17,7 @@ public class EquivalenceClassesAnalyzerKiggs {
     private static int totalRows = 0;
     private static int rowsFilteredOut = 0;
     private static ArrayList<String> userQIChoice = new ArrayList<String>();
+    private static int threshold;
 
     public static void main(String[] args) {
         // Specify the path to your CSV file
@@ -30,7 +30,7 @@ public class EquivalenceClassesAnalyzerKiggs {
             // Display sizes of equivalence classes
             displayEquivalenceClassSizes(equivalenceClasses);
                 // Get the threshold from the user
-            int threshold = getUserThreshold();
+            threshold = getUserThreshold();
             Map<String, Integer> filteredEquivalenceClasses = filterEquivalenceClasses(equivalenceClasses, threshold);
             displayEquivalenceClassSizes(filteredEquivalenceClasses);
 
@@ -208,7 +208,7 @@ public class EquivalenceClassesAnalyzerKiggs {
             // writer.append("Total Rows,Filtered Rows,Remaining Rows,QI's,Number of Classes,Minimum Class Size,Maximum Class Size,Average Class Size\n");
 
             // Write statistics
-            writer.append(totalRows + "," + rowsFilteredOut + "," + (totalRows - rowsFilteredOut) + "," +
+            writer.append(totalRows + "," + threshold + "," + rowsFilteredOut + "," + (totalRows - rowsFilteredOut) + "," +
                     numOfClasses + "," + minSize + "," + maxSize + "," + averageSize + "," + userQIChoice + "\n");
 
             System.out.println("Statistics CSV created: " + csvFileName);
